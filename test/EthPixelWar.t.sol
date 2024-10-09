@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
@@ -9,14 +9,13 @@ contract CounterTest is Test {
 
     address alice;
     address bob;
-    
+
     function setUp() public {
         epw = new EthPixelWar(3);
-        
-        
+
         alice = address(0x123);
         bob = address(0x456);
-        
+
         // Label the addresses for easier readability in logs
         vm.label(alice, "Alice");
         vm.label(bob, "Bob");
