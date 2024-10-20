@@ -37,6 +37,19 @@ contract CounterTest is Test {
         vm.stopPrank();
     }
 
+    function test_ValidBid_Modifier() public {
+        // Alice places a bid on cell (1,1)
+        vm.startPrank(alice);
+        epw.bid{value: 2 ether}(1, 1); // Alice bids 2 ether for cell (1,1)
+        vm.stopPrank();
+
+        // Bob places a bid on cell (1,1)
+        vm.startPrank(bob);
+        vm.expectRevert("Bid must be higher than current highest bid");
+        epw.bid{value: 1 ether}(1, 1); // Bob bids insufficient amount for cell (1,1)
+        vm.stopPrank();
+    }
+
     function test_onlyPixelOwner_Modifier() public {
         // Alice places a bid on cell (1,1)
         vm.startPrank(alice);
