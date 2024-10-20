@@ -37,7 +37,7 @@ contract CounterTest is Test {
         vm.stopPrank();
     }
 
-    function test_OnlyOwner_Modifier() public {
+    function test_onlyPixelOwner_Modifier() public {
         // Alice places a bid on cell (1,1)
         vm.startPrank(alice);
         epw.bid{value: 1 ether}(1, 1); // Alice bids 1 ether for cell (1,1)
@@ -55,5 +55,104 @@ contract CounterTest is Test {
         vm.startPrank(alice);
         epw.updateColor(1, 1, 0, 255, 0); // Alice is the owner, should succeed
         vm.stopPrank();
+    }
+
+    function test_onlyActivePixelWar_Modifier() public {
+        // Alice places a bid on cell (1,1)
+        vm.startPrank(alice);
+        epw.bid{value: 1 ether}(1, 1); // Alice bids 1 ether for cell (1,1)
+        vm.stopPrank();
+
+        // Contract owner ends the pixel war
+        epw.endPixelWar();
+
+        // Alice tries to update the color, but the pixel war is not active anymore
+        vm.startPrank(alice);
+        // Expect Alice's updateColor attempt to fail
+        vm.expectRevert("The pixel war has ended");
+        epw.updateColor(1, 1, 255, 0, 0); // Alice can't update, should revert
+
+        // Expect Alice's bid attempt to fail
+        vm.expectRevert("The pixel war has ended");
+        epw.bid{value: 1 ether}(1, 2); // Alice can't bid, should revert
+        vm.stopPrank();
+
+        // War has already ended
+        vm.expectRevert("The pixel war has ended");
+        epw.endPixelWar();
+    }
+
+    function test_onlyContractOwner_Modifier() public {
+        // Bob is not the owner of the contract
+        vm.startPrank(bob);
+        vm.expectRevert("Not the contract owner");
+        epw.endPixelWar(); // Bob can't end the pixel war, should revert
+        vm.stopPrank();
+
+        // Contract owner can end the pixel war
+        epw.endPixelWar();
+    }
+
+    function test_beatenBid() public {
+        // Alice places a bid on cell (1,1)
+        vm.startPrank(alice);
+        epw.bid{value: 1 ether}(1, 1); // Alice bids 1 ether for cell (1,1)
+        vm.stopPrank();
+
+        // Bob places an higher bid on cell (1,1)
+        vm.startPrank(bob);
+        epw.bid{value: 2 ether}(1, 1); // Bob bids 2 ether for cell (1,1)
+        vm.stopPrank();
+
+        // Alice can now withdraw it's beaten bid
+        vm.startPrank(alice);
+        epw.withdraw();
+        vm.stopPrank();
+
+        // While bob has no funds to withdraw for the moment
+        vm.startPrank(bob);
+        vm.expectRevert("No funds to withdraw");
+        epw.withdraw();
+        vm.stopPrank();
+    }
+
+    function test_endWar() public {
+        // Alice places a bid on cells (1,1) and (1,2)
+        vm.startPrank(alice);
+        epw.bid{value: 1 ether}(1, 1); // Alice bids 1 ether for cell (1,1)
+        epw.bid{value: 1 ether}(1, 2); // Alice bids 1 ether for cell (1,1)
+        vm.stopPrank();
+
+        // Bob places a bid on cell (2,1)
+        vm.startPrank(bob);
+        epw.bid{value: 2 ether}(2, 1); // Bob bids 2 ether for cell (1,1)
+        vm.stopPrank();
+
+        // Contract owner ends the pixel war
+        epw.endPixelWar();
+
+        // Alice and Bob can now withdraw their bids
+        vm.startPrank(alice);
+        epw.withdraw();
+        vm.stopPrank();
+        vm.startPrank(bob);
+        epw.withdraw();
+        vm.stopPrank();
+    }
+
+    function test_getPixel() public {
+        // Alice places a bid on cell (1,1) and updates its color
+        vm.startPrank(alice);
+        epw.bid{value: 3 ether}(1, 1); // Alice bids 1 ether for cell (1,1)
+        epw.updateColor(1, 1, 255, 0, 0);
+        vm.stopPrank();
+
+        (address pixelOwner, uint256 pixelHighestBid, uint8 red, uint8 green, uint8 blue) = epw.getPixel(1, 1);
+
+        assertEq(pixelOwner, alice);
+        assertEq(pixelHighestBid, 3 ether);
+        assertEq(red, 255);
+        assertEq(green, 0);
+        assertEq(blue, 0);
     }
 }
