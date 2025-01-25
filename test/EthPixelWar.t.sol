@@ -11,10 +11,9 @@ contract CounterTest is Test {
     address bob;
 
     function setUp() public {
-        epw = new EthPixelWar(3);
-
         alice = address(0x123);
         bob = address(0x456);
+        epw = new EthPixelWar(3, false, alice);
 
         // Label the addresses for easier readability in logs
         vm.label(alice, "Alice");
@@ -74,13 +73,11 @@ contract CounterTest is Test {
         // Alice places a bid on cell (1,1)
         vm.startPrank(alice);
         epw.bid{value: 1 ether}(1, 1); // Alice bids 1 ether for cell (1,1)
-        vm.stopPrank();
 
         // Contract owner ends the pixel war
         epw.endPixelWar();
 
         // Alice tries to update the color, but the pixel war is not active anymore
-        vm.startPrank(alice);
         // Expect Alice's updateColor attempt to fail
         vm.expectRevert("The pixel war has ended");
         epw.updateColor(1, 1, 255, 0, 0); // Alice can't update, should revert
@@ -88,22 +85,11 @@ contract CounterTest is Test {
         // Expect Alice's bid attempt to fail
         vm.expectRevert("The pixel war has ended");
         epw.bid{value: 1 ether}(1, 2); // Alice can't bid, should revert
-        vm.stopPrank();
 
         // War has already ended
         vm.expectRevert("The pixel war has ended");
         epw.endPixelWar();
-    }
-
-    function test_onlyContractOwner_Modifier() public {
-        // Bob is not the owner of the contract
-        vm.startPrank(bob);
-        vm.expectRevert("Not the contract owner");
-        epw.endPixelWar(); // Bob can't end the pixel war, should revert
         vm.stopPrank();
-
-        // Contract owner can end the pixel war
-        epw.endPixelWar();
     }
 
     function test_beatenBid() public {
@@ -141,8 +127,16 @@ contract CounterTest is Test {
         epw.bid{value: 2 ether}(2, 1); // Bob bids 2 ether for cell (1,1)
         vm.stopPrank();
 
-        // Contract owner ends the pixel war
+        // Only the owner can end the pixel war
+        vm.startPrank(bob);
+        vm.expectRevert();
         epw.endPixelWar();
+        vm.stopPrank();
+
+        // Contract owner ends the pixel war
+        vm.startPrank(alice);
+        epw.endPixelWar();
+        vm.stopPrank();
 
         // Alice and Bob can now withdraw their bids
         vm.startPrank(alice);
