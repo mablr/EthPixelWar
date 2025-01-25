@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-contract EthPixelWar {
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract EthPixelWar is Ownable {
     struct Pixel {
         address owner;
         uint256 highestBid;
@@ -10,29 +12,24 @@ contract EthPixelWar {
         uint8 b;
     }
 
-    address public owner;
+    bool public liteMode;
     bool public pixelWarIsActive;
-    uint256 public gridSize;
-    mapping(uint256 => mapping(uint256 => Pixel)) public grid;
+    uint16 public gridSize;
+    mapping(uint16 => mapping(uint16 => Pixel)) public grid;
     mapping(address => uint256) pendingWithdrawals;
 
-    event PixelBid(uint256 x, uint256 y, address bidder, uint256 bidAmount);
-    event ColorUpdated(uint256 x, uint256 y, uint8 r, uint8 g, uint8 b);
+    event PixelBid(uint16 x, uint16 y, address bidder, uint256 bidAmount);
+    event ColorUpdated(uint16 x, uint16 y, uint8 r, uint8 g, uint8 b);
     event PixelWarEnded();
 
-    constructor(uint256 _gridSize) {
-        owner = msg.sender;
+    constructor(uint16 _gridSize, bool _liteMode, address _initialOwner) Ownable(_initialOwner) {
         gridSize = _gridSize;
+        liteMode = _liteMode;
         pixelWarIsActive = true;
     }
 
-    modifier validCoordinates(uint256 x, uint256 y) {
+    modifier validCoordinates(uint16 x, uint16 y) {
         require(x < gridSize && y < gridSize, "Invalid coordinates");
-        _;
-    }
-
-    modifier onlyContractOwner() {
-        require(msg.sender == owner, "Not the contract owner");
         _;
     }
 
@@ -41,17 +38,17 @@ contract EthPixelWar {
         _;
     }
 
-    modifier onlyPixelOwner(uint256 x, uint256 y) {
+    modifier onlyPixelOwner(uint16 x, uint16 y) {
         require(msg.sender == grid[x][y].owner, "Not the pixel owner");
         _;
     }
 
-    modifier validBid(uint256 x, uint256 y) {
+    modifier validBid(uint16 x, uint16 y) {
         require(msg.value > grid[x][y].highestBid, "Bid must be higher than current highest bid");
         _;
     }
 
-    function bid(uint256 x, uint256 y) public payable validCoordinates(x, y) validBid(x, y) onlyActivePixelWar {
+    function bid(uint16 x, uint16 y) public payable validCoordinates(x, y) validBid(x, y) onlyActivePixelWar {
         Pixel storage pixel = grid[x][y];
         if (pixel.owner != address(0)) {
             pendingWithdrawals[pixel.owner] += pixel.highestBid;
@@ -69,23 +66,25 @@ contract EthPixelWar {
         payable(msg.sender).transfer(amount);
     }
 
-    function updateColor(uint256 x, uint256 y, uint8 red, uint8 green, uint8 blue)
+    function updateColor(uint16 x, uint16 y, uint8 red, uint8 green, uint8 blue)
         public
         validCoordinates(x, y)
         onlyPixelOwner(x, y)
         onlyActivePixelWar
     {
-        grid[x][y].r = red;
-        grid[x][y].g = green;
-        grid[x][y].b = blue;
+        if (!liteMode) {
+            grid[x][y].r = red;
+            grid[x][y].g = green;
+            grid[x][y].b = blue;
+        }
         emit ColorUpdated(x, y, red, green, blue);
     }
 
-    function endPixelWar() public onlyContractOwner onlyActivePixelWar {
+    function endPixelWar() public onlyOwner onlyActivePixelWar {
         pixelWarIsActive = false;
 
-        for (uint256 x = 0; x < gridSize; x++) {
-            for (uint256 y = 0; y < gridSize; y++) {
+        for (uint16 x = 0; x < gridSize; x++) {
+            for (uint16 y = 0; y < gridSize; y++) {
                 Pixel storage pixel = grid[x][y];
                 if (pixel.owner != address(0) && pixel.highestBid > 0) {
                     pendingWithdrawals[pixel.owner] += pixel.highestBid;
@@ -96,12 +95,13 @@ contract EthPixelWar {
         emit PixelWarEnded();
     }
 
-    function getPixel(uint256 x, uint256 y)
+    function getPixel(uint16 x, uint16 y)
         public
         view
         validCoordinates(x, y)
         returns (address pixelOwner, uint256 pixelHighestBid, uint8 red, uint8 green, uint8 blue)
     {
+        require(!liteMode, "Lite mode is enabled, no color information available");
         Pixel memory pixel = grid[x][y];
         return (pixel.owner, pixel.highestBid, pixel.r, pixel.g, pixel.b);
     }
