@@ -94,5 +94,4 @@ contract EthPixelWar is Ownable {
 
         emit PixelWarEnded();
     }
-
 }
