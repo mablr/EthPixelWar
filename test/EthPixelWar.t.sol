@@ -154,7 +154,7 @@ contract EthPixelWarTest is Test {
         epw.updateColor(1, 1, 255, 0, 0);
         vm.stopPrank();
 
-        (address pixelOwner, uint256 pixelHighestBid, uint8 red, uint8 green, uint8 blue) = epw.getPixel(1, 1);
+        (address pixelOwner, uint256 pixelHighestBid, uint8 red, uint8 green, uint8 blue) = epw.grid(1, 1);
 
         assertEq(pixelOwner, alice);
         assertEq(pixelHighestBid, 3 ether);

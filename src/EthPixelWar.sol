@@ -95,14 +95,4 @@ contract EthPixelWar is Ownable {
         emit PixelWarEnded();
     }
 
-    function getPixel(uint16 x, uint16 y)
-        public
-        view
-        validCoordinates(x, y)
-        returns (address pixelOwner, uint256 pixelHighestBid, uint8 red, uint8 green, uint8 blue)
-    {
-        require(!liteMode, "Lite mode is enabled, no color information available");
-        Pixel memory pixel = grid[x][y];
-        return (pixel.owner, pixel.highestBid, pixel.r, pixel.g, pixel.b);
-    }
 }
