@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {EthPixelWar} from "../src/EthPixelWar.sol";
 
-contract CounterTest is Test {
+contract EthPixelWarTest is Test {
     EthPixelWar public epw;
 
     address alice;
