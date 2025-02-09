@@ -16,7 +16,7 @@ contract EthPixelWar is Ownable {
     bool public pixelWarIsActive;
     uint16 public gridSize;
     mapping(uint16 => mapping(uint16 => Pixel)) public grid;
-    mapping(address => uint256) pendingWithdrawals;
+    mapping(address => uint256) public pendingWithdrawals;
 
     event PixelBid(uint16 x, uint16 y, address bidder, uint256 bidAmount);
     event ColorUpdated(uint16 x, uint16 y, uint8 r, uint8 g, uint8 b);
