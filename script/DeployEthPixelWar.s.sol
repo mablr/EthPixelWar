@@ -5,7 +5,7 @@ import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {EthPixelWar} from "../src/EthPixelWar.sol";
 
-contract DeployLiteMode is Script {
+contract DeployEthPixelWar is Script {
     address public initialOwner = msg.sender;
     uint16 public gridSize = 10;
     bool public liteMode = false;
