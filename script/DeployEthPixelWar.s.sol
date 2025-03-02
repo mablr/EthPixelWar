@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Script} from "forge-std/Script.sol";
-import {console} from "forge-std/console.sol";
+import {Script} from "forge-std-1.9.6/src/Script.sol";
+import {console} from "forge-std-1.9.6/src/console.sol";
 import {EthPixelWar} from "../src/EthPixelWar.sol";
 
 contract DeployEthPixelWar is Script {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test, console} from "forge-std-1.9.6/src/Test.sol";
 import {EthPixelWar, Pixel} from "../src/EthPixelWar.sol";
 
 contract EthPixelWarTest is Test {
