@@ -13,7 +13,7 @@ contract EthPixelWarTest is Test {
     function setUp() public {
         alice = address(0x123);
         bob = address(0x456);
-        epw = new EthPixelWar(3, false, alice);
+        epw = new EthPixelWar(3, 4, false, alice);
 
         // Label the addresses for easier readability in logs
         vm.label(alice, "Alice");
@@ -171,7 +171,7 @@ contract EthPixelWarTest is Test {
         vm.stopPrank();
 
         Pixel[] memory pixels = epw.getGrid();
-        assertEq(pixels.length, 9);
+        assertEq(pixels.length, 12);
         assertEq(pixels[5].owner, alice);
         assertEq(pixels[5].highestBid, 3 ether);
         assertEq(pixels[5].r, 255);

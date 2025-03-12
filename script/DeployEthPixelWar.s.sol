@@ -6,12 +6,13 @@ import {console} from "forge-std-1.9.6/src/console.sol";
 import {EthPixelWar} from "../src/EthPixelWar.sol";
 
 contract DeployEthPixelWar is Script {
-    uint16 public gridSize = 10;
+    uint16 public dimX = 10;
+    uint16 public dimY = 10;
     bool public liteMode = false;
 
     function run() external returns (EthPixelWar) {
         vm.startBroadcast();
-        EthPixelWar ethPixelWar = new EthPixelWar(gridSize, liteMode, msg.sender);
+        EthPixelWar ethPixelWar = new EthPixelWar(dimX, dimY, liteMode, msg.sender);
         vm.stopBroadcast();
         console.log("Deployed EthPixelWar contract at:", address(ethPixelWar));
         return ethPixelWar;

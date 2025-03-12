@@ -13,7 +13,8 @@ struct Pixel {
 
 contract EthPixelWar is Ownable {
     bool public immutable liteMode;
-    uint16 public immutable nbPixels;
+    uint16 public immutable dimX;
+    uint16 public immutable dimY;
     bool public pixelWarIsActive;
     mapping(uint16 => Pixel) public grid;
     mapping(address => uint256) public pendingWithdrawals;
@@ -22,15 +23,16 @@ contract EthPixelWar is Ownable {
     event ColorUpdated(uint16 pixelId, uint8 r, uint8 g, uint8 b);
     event PixelWarEnded();
 
-    constructor(uint16 _gridSize, bool _liteMode, address _initialOwner) Ownable(_initialOwner) {
-        require(_gridSize > 0 && _gridSize <= 255, "Grid size must be between 1 and 255");
-        nbPixels = _gridSize * _gridSize;
+    constructor(uint16 _dimX, uint16 _dimY, bool _liteMode, address _initialOwner) Ownable(_initialOwner) {
+        require(_dimX > 0 && _dimX <= 255 && _dimY > 0 && _dimY <= 255, "Grid dimensions must be between 1 and 255");
         liteMode = _liteMode;
+        dimX = _dimX;
+        dimY = _dimY;
         pixelWarIsActive = true;
     }
 
     modifier validPixelId(uint16 pixelId) {
-        require(pixelId < nbPixels, "Invalid pixel id");
+        require(pixelId < dimX * dimY, "Invalid pixel id");
         _;
     }
 
@@ -84,7 +86,7 @@ contract EthPixelWar is Ownable {
     function endPixelWar() public onlyOwner onlyActivePixelWar {
         pixelWarIsActive = false;
 
-        for (uint16 pixelId = 0; pixelId < nbPixels; pixelId++) {
+        for (uint16 pixelId = 0; pixelId < dimX * dimY; pixelId++) {
             Pixel storage pixel = grid[pixelId];
             if (pixel.owner != address(0) && pixel.highestBid > 0) {
                 pendingWithdrawals[pixel.owner] += pixel.highestBid;
@@ -95,8 +97,8 @@ contract EthPixelWar is Ownable {
     }
 
     function getGrid() public view returns (Pixel[] memory) {
-        Pixel[] memory pixels = new Pixel[](nbPixels);
-        for (uint16 pixelId = 0; pixelId < nbPixels; pixelId++) {
+        Pixel[] memory pixels = new Pixel[](dimX * dimY);
+        for (uint16 pixelId = 0; pixelId < dimX * dimY; pixelId++) {
             pixels[pixelId] = grid[pixelId];
         }
         return pixels;
